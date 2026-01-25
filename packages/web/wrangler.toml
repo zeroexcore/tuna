@@ -1,5 +1,6 @@
 name = "tuna-web"
 compatibility_date = "2024-01-01"
+account_id = "733c505809a0c09542a27ef2923e895f"
 
 assets = { directory = "dist" }
 

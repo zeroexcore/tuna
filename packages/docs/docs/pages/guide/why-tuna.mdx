@@ -1,0 +1,140 @@
+# Why Tuna?
+
+There are many ways to expose your local development server to the internet. Here's why tuna might be the right choice for you.
+
+## The Problem
+
+When developing modern web applications, you often need to expose your local server to the internet for:
+
+- **Webhook testing** - Stripe, GitHub, Twilio all need to send data to your app
+- **OAuth callbacks** - Social login providers need a real URL
+- **Mobile testing** - Test on real devices without complex network config
+- **Client demos** - Share work-in-progress securely
+- **Team collaboration** - Multiple devs working on the same project
+
+The traditional solutions each have drawbacks:
+
+### ngrok
+- Random URLs on free tier
+- Custom domains require paid plan ($8+/month)
+- Tunnels don't persist across restarts
+- No native access control
+
+### localtunnel
+- Random subdomains only
+- Unreliable uptime
+- No authentication
+- Often blocked by corporate firewalls
+
+### Raw cloudflared
+- Complex setup with multiple commands
+- Manual DNS configuration
+- Dashboard required for access control
+- No command wrapping
+
+## The Solution
+
+Tuna wraps cloudflared with a developer-friendly interface:
+
+```bash
+# Instead of this...
+cloudflared tunnel create my-tunnel
+cloudflared tunnel route dns my-tunnel my-app.example.com
+cloudflared tunnel run my-tunnel &
+npm run dev
+
+# Just do this
+tuna npm run dev
+```
+
+## Feature Comparison
+
+| Feature | tuna | ngrok | localtunnel | cloudflared |
+|---------|:----:|:-----:|:-----------:|:-----------:|
+| Free custom domains | ✅ | ❌ | ❌ | ✅ |
+| Persistent tunnels | ✅ | ❌ | ❌ | ✅ |
+| Zero config | ✅ | ❌ | ✅ | ❌ |
+| Wrapper mode | ✅ | ❌ | ❌ | ❌ |
+| Team collaboration | ✅ | ❌ | ❌ | ❌ |
+| Config-based access control | ✅ | ❌ | ❌ | ❌ |
+| Secure credential storage | ✅ | ✅ | N/A | ❌ |
+| No account required | ❌ | ✅ | ✅ | ❌ |
+
+## Key Advantages
+
+### 1. Free Custom Domains
+
+Use your own domain at no extra cost. If you have `example.com` on Cloudflare, you can create unlimited subdomains:
+
+```json
+{
+  "tuna": {
+    "forward": "dev.example.com",
+    "port": 3000
+  }
+}
+```
+
+### 2. Persistent Tunnels
+
+Tuna installs cloudflared as a system service. Your tunnel survives:
+- Terminal restarts
+- SSH disconnections  
+- System reboots (with auto-start)
+
+### 3. Team-Friendly
+
+The `$USER` variable prevents subdomain conflicts:
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000
+  }
+}
+```
+
+- Alice gets `alice-api.example.com`
+- Bob gets `bob-api.example.com`
+- No coordination needed
+
+### 4. Config-Driven Access Control
+
+Restrict access without touching a dashboard:
+
+```json
+{
+  "tuna": {
+    "forward": "staging.example.com",
+    "port": 3000,
+    "access": ["@mycompany.com", "client@gmail.com"]
+  }
+}
+```
+
+### 5. Transparent Wrapper
+
+Tuna doesn't interfere with your dev tools:
+- Full color output preserved
+- TTY/interactive mode works
+- Exit codes passed through
+- Ctrl+C works as expected
+
+## When NOT to Use Tuna
+
+Tuna might not be right for you if:
+
+- **You don't have a Cloudflare account** - Tuna requires a domain on Cloudflare
+- **You need Windows/Linux support** - Currently macOS only
+- **You need one-off tunnels** - ngrok's random URLs are simpler for quick shares
+- **You're in a restricted network** - Some corporate networks block Cloudflare tunnels
+
+## Cost
+
+Tuna itself is free and open source. The underlying Cloudflare services are also free:
+- Cloudflare Tunnels: Free
+- Cloudflare DNS: Free
+- Cloudflare Access (up to 50 users): Free
+
+You just need a domain on Cloudflare (can be a cheap $10/year domain).

@@ -1,0 +1,125 @@
+# tuna --login
+
+Set up Cloudflare credentials for tunnel management.
+
+## Usage
+
+```bash
+tuna --login
+```
+
+## What It Does
+
+1. Prompts for your Cloudflare API token
+2. Validates the token against Cloudflare API
+3. Fetches your account ID
+4. Prompts for your root domain
+5. Verifies domain access
+6. Stores credentials in macOS Keychain
+
+## Interactive Flow
+
+```bash
+$ tuna --login
+
+🔐 Tuna Login
+
+Create a token at: https://dash.cloudflare.com/profile/api-tokens
+Required permissions:
+  • Account → Cloudflare Tunnel → Edit
+  • Account → Access: Apps and Policies → Edit
+  • Zone → DNS → Edit
+  • Account → Account Settings → Read
+
+? Enter your Cloudflare API token: ************************************
+✓ Token validated
+✓ Account ID: 699d98642c564d2e855e9661899b7252
+
+? Enter your root domain (e.g., example.com): example.com
+✓ Domain verified
+
+✓ Credentials saved to macOS Keychain
+
+Next steps:
+  1. Add to your package.json:
+     {
+       "tuna": {
+         "forward": "my-app.example.com",
+         "port": 3000
+       }
+     }
+  2. Run: tuna npm run dev
+```
+
+## Creating an API Token
+
+1. Go to [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Click **Create Token**
+3. Click **Create Custom Token**
+4. Configure permissions:
+
+| Section | Resource | Permission |
+|---------|----------|------------|
+| Permissions | Account - Cloudflare Tunnel | Edit |
+| Permissions | Account - Access: Apps and Policies | Edit |
+| Permissions | Zone - DNS | Edit |
+| Permissions | Account - Account Settings | Read |
+
+5. Under **Zone Resources**, select your domain or "All zones"
+6. Click **Continue to summary** → **Create Token**
+7. Copy the token immediately (it won't be shown again)
+
+## Credential Storage
+
+Credentials are stored in your macOS Keychain:
+
+- **Service**: `tuna-credentials-{domain}`
+- **Account**: `{domain}`
+- **Data**: API token, account ID, domain (JSON)
+
+### Security
+
+- Encrypted at rest by macOS
+- Requires biometric auth (Touch ID) or password to access
+- Never stored in files or environment variables
+- Not accessible to other applications
+
+## Multiple Domains
+
+Run `--login` multiple times for different domains:
+
+```bash
+tuna --login  # Configure example.com
+tuna --login  # Configure another-domain.com
+```
+
+Each domain's credentials are stored separately.
+
+## Updating Credentials
+
+Run `--login` again to update credentials for a domain. The old credentials will be replaced.
+
+## Troubleshooting
+
+### "Invalid API token"
+
+- Check for typos when pasting
+- Ensure the token hasn't expired
+- Verify the token has all required permissions
+
+### "Domain not found"
+
+- Ensure the domain is added to your Cloudflare account
+- Check that your token has access to that zone
+- Use just the root domain (e.g., `example.com`, not `www.example.com`)
+
+### "Could not save to Keychain"
+
+- Check System Preferences → Security & Privacy → Privacy
+- Ensure your terminal app has Keychain access
+- Try running in a new terminal window
+
+## See Also
+
+- [Installation](/guide/installation) - Full setup guide
+- [tuna --init](/commands/init) - Configure your project

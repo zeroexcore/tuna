@@ -1,0 +1,180 @@
+# Configuration
+
+Tuna is configured through the `tuna` field in your `package.json`.
+
+## Basic Configuration
+
+```json
+{
+  "name": "my-app",
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+  }
+}
+```
+
+## Configuration Options
+
+### `forward` (required)
+
+The domain where your tunnel will be accessible.
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+  }
+}
+```
+
+**Rules:**
+- Must be a valid domain name
+- Must be a subdomain of a domain in your Cloudflare account
+- Supports environment variable interpolation (see below)
+
+### `port` (required)
+
+The local port your dev server runs on.
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+  }
+}
+```
+
+**Rules:**
+- Must be a number between 1 and 65535
+- Should match the port your dev server uses
+
+### `access` (optional)
+
+Array of email addresses or domains that can access the tunnel.
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000,
+    "access": ["@company.com", "contractor@gmail.com"]
+  }
+}
+```
+
+**Patterns:**
+- `@domain.com` - Allow all emails from domain
+- `user@domain.com` - Allow specific email
+
+See [Access Control](/guide/access-control) for details.
+
+## Environment Variables
+
+The `forward` field supports environment variable interpolation:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `$USER` | Current username | `alice` |
+| `$TUNA_USER` | Custom identifier (falls back to `$USER`) | `alice` |
+| `$HOME` | Home directory | `/Users/alice` |
+
+### Team Configuration
+
+Use `$USER` to give each developer their own subdomain:
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000
+  }
+}
+```
+
+Results:
+- Alice → `alice-api.example.com`
+- Bob → `bob-api.example.com`
+
+### Custom Identifier
+
+Override the username with `TUNA_USER`:
+
+```bash
+TUNA_USER=staging tuna npm run dev
+# → staging-api.example.com
+```
+
+## Examples
+
+### Basic Web App
+
+```json
+{
+  "tuna": {
+    "forward": "myapp.example.com",
+    "port": 3000
+  }
+}
+```
+
+### API Server for Team
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 8080
+  }
+}
+```
+
+### Staging Environment with Access Control
+
+```json
+{
+  "tuna": {
+    "forward": "staging.example.com",
+    "port": 3000,
+    "access": ["@mycompany.com"]
+  }
+}
+```
+
+### Client Demo
+
+```json
+{
+  "tuna": {
+    "forward": "demo.example.com",
+    "port": 3000,
+    "access": ["client@clientcompany.com", "@mycompany.com"]
+  }
+}
+```
+
+## Multiple Environments
+
+For different environments, you can use different branches or environment variables:
+
+```bash
+# Development (each dev gets their own)
+# package.json: "forward": "$USER-dev.example.com"
+tuna npm run dev
+
+# Staging
+TUNA_USER=staging tuna npm run dev
+# → staging-dev.example.com
+```
+
+## Validation
+
+Tuna validates your configuration on startup:
+
+- `forward` must be a valid domain after variable interpolation
+- `port` must be a number between 1-65535
+- `access` entries must be valid email addresses or `@domain` patterns
+
+Invalid configuration will show a helpful error message.

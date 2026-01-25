@@ -1,0 +1,58 @@
+{
+  "name": "tuna",
+  "version": "0.1.0",
+  "description": "Cloudflare Tunnel Wrapper for Development Servers",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeroexcore/tuna.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/zeroexcore/tuna/issues"
+  },
+  "homepage": "https://github.com/zeroexcore/tuna#readme",
+  "bin": {
+    "tuna": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint src",
+    "prepublishOnly": "pnpm typecheck && pnpm test"
+  },
+  "keywords": [
+    "cloudflare",
+    "tunnel",
+    "dev",
+    "ngrok",
+    "localtunnel",
+    "development",
+    "cloudflared"
+  ],
+  "author": "zeroexcore",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.9",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^25.0.10",
+    "@vitest/ui": "^4.0.18",
+    "tsx": "^4.21.0",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "execa": "^9.6.1",
+    "find-up": "^8.0.0",
+    "inquirer": "^13.2.1",
+    "js-yaml": "^4.1.1",
+    "keytar": "^7.9.0",
+    "ora": "^9.1.0"
+  }
+}

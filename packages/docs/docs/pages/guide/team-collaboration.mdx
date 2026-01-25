@@ -1,0 +1,192 @@
+# Team Collaboration
+
+One of tuna's best features is built-in support for team development. Each developer automatically gets their own subdomain, preventing conflicts.
+
+## The Problem
+
+When multiple developers work on the same project with tunnels:
+
+- **Subdomain conflicts** - Two people can't use `api.example.com` at the same time
+- **Manual coordination** - "Hey, are you using the tunnel right now?"
+- **DNS collisions** - Overwriting each other's DNS records
+
+## The Solution: $USER Variable
+
+Use the `$USER` environment variable in your forward domain:
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000
+  }
+}
+```
+
+Now each developer automatically gets their own subdomain:
+
+| Developer | Username | Tunnel URL |
+|-----------|----------|------------|
+| Alice | `alice` | `https://alice-api.example.com` |
+| Bob | `bob` | `https://bob-api.example.com` |
+| Charlie | `charlie` | `https://charlie-api.example.com` |
+
+## Setup
+
+### 1. Configure package.json
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000
+  }
+}
+```
+
+### 2. Each Developer Logs In
+
+Each team member runs this once:
+
+```bash
+tuna --login
+```
+
+They'll need:
+- The same Cloudflare API token (shared) or their own token with appropriate permissions
+- The root domain (`example.com`)
+
+### 3. Run Normally
+
+```bash
+tuna npm run dev
+```
+
+Each developer sees their own URL:
+
+```
+✓ Tunnel active: https://alice-api.example.com → localhost:3000
+```
+
+## Patterns
+
+### API Server
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 8080
+  }
+}
+```
+
+### Frontend + Backend
+
+For a monorepo with multiple services:
+
+```json
+// packages/frontend/package.json
+{
+  "tuna": {
+    "forward": "$USER-app.example.com",
+    "port": 3000
+  }
+}
+
+// packages/backend/package.json  
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 8080
+  }
+}
+```
+
+### Feature Branches
+
+Use `$TUNA_USER` for feature-specific tunnels:
+
+```bash
+# Working on feature-auth
+TUNA_USER=auth tuna npm run dev
+# → auth-api.example.com
+
+# Working on feature-payments
+TUNA_USER=payments tuna npm run dev
+# → payments-api.example.com
+```
+
+## Sharing Credentials
+
+### Option 1: Shared API Token
+
+Create one API token and share it with the team:
+
+**Pros:**
+- Simple setup
+- One token to manage
+
+**Cons:**
+- Can't revoke access for one person
+- Harder to audit who did what
+
+### Option 2: Individual Tokens
+
+Each developer creates their own token:
+
+**Pros:**
+- Can revoke individual access
+- Better audit trail
+- Follows principle of least privilege
+
+**Cons:**
+- More setup per person
+
+### Token Permissions Needed
+
+Each token needs:
+
+| Scope | Resource | Permission |
+|-------|----------|------------|
+| Account | Cloudflare Tunnel | Edit |
+| Account | Access: Apps and Policies | Edit |
+| Zone | DNS | Edit |
+| Account | Account Settings | Read |
+
+## Listing Team Tunnels
+
+See all tunnels for your domain:
+
+```bash
+tuna --list
+```
+
+Output:
+```
+TUNNELS for example.com (3)
+
+NAME                           STATUS    DOMAIN                     CREATED
+tuna-alice-api-example-com     ● active  alice-api.example.com      2024-01-15
+tuna-bob-api-example-com       ● active  bob-api.example.com        2024-01-15
+tuna-charlie-api-example-com   ○ down    charlie-api.example.com    2024-01-14
+```
+
+## Cleanup
+
+Developers can clean up their own tunnels:
+
+```bash
+# Delete current project's tunnel
+tuna --delete
+
+# Delete specific tunnel
+tuna --delete tuna-alice-api-example-com
+```
+
+## Best Practices
+
+1. **Use consistent naming** - Agree on a pattern like `$USER-{service}.example.com`
+2. **Document the setup** - Add tuna setup to your project's README
+3. **Share the domain** - Everyone should use the same root domain
+4. **Clean up old tunnels** - Delete tunnels when leaving a project

@@ -1,0 +1,107 @@
+# tuna --stop
+
+Stop the cloudflared service.
+
+## Usage
+
+```bash
+tuna --stop
+```
+
+## What It Does
+
+1. Checks if the cloudflared service is running
+2. Asks for confirmation
+3. Stops the launchd service
+4. All tunnels go offline
+
+## Output
+
+```bash
+$ tuna --stop
+
+⚠  This will stop the cloudflared service and take all tunnels offline.
+? Are you sure? Yes
+
+✓ Cloudflared service stopped
+
+Tunnels are offline. Run 'tuna <command>' to restart.
+```
+
+## Skip Confirmation
+
+Use `--yes` or `-y` to skip the confirmation prompt:
+
+```bash
+tuna --stop --yes
+tuna --stop -y
+```
+
+## Effects
+
+### What Stops
+
+- The cloudflared daemon process
+- All active tunnel connections
+- All tunnels become inaccessible
+
+### What Remains
+
+- Tunnel configurations (in Cloudflare)
+- DNS records
+- Credentials in Keychain
+- Local config files
+
+## Restarting
+
+Simply run tuna again to restart:
+
+```bash
+tuna npm run dev
+```
+
+The service will be reinstalled and tunnels will reconnect.
+
+## When to Use
+
+### Troubleshooting
+
+If tunnels aren't working correctly:
+
+```bash
+tuna --stop
+tuna npm run dev  # Fresh start
+```
+
+### Freeing Resources
+
+The cloudflared service uses minimal resources, but you can stop it when not needed:
+
+```bash
+tuna --stop  # When done for the day
+```
+
+### Before Uninstalling
+
+Stop the service before removing tuna:
+
+```bash
+tuna --stop
+npm uninstall -g tuna
+```
+
+## Service Not Running
+
+If the service is already stopped:
+
+```bash
+$ tuna --stop
+Service is not running
+```
+
+This exits with code 0 (success).
+
+## See Also
+
+- [tuna --delete](/commands/delete) - Remove tunnel completely
+- [tuna --list](/commands/list) - Check tunnel status

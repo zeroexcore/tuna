@@ -1,0 +1,223 @@
+# Configuration Reference
+
+Complete reference for the `tuna` configuration in `package.json`.
+
+## Schema
+
+```json
+{
+  "tuna": {
+    "forward": string,    // Required
+    "port": number,       // Required  
+    "access": string[]    // Optional
+  }
+}
+```
+
+## Properties
+
+### forward
+
+**Type:** `string`  
+**Required:** Yes
+
+The domain where your tunnel will be accessible.
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com"
+  }
+}
+```
+
+**Validation:**
+- Must be a valid domain name
+- Must be a subdomain of a zone in your Cloudflare account
+- Applied after environment variable interpolation
+
+**Environment Variables:**
+
+| Variable | Description | Fallback |
+|----------|-------------|----------|
+| `$USER` | Current system username | `unknown` |
+| `$TUNA_USER` | Custom tuna identifier | `$USER` |
+| `$HOME` | Home directory path | `~` |
+
+**Examples:**
+
+```json
+// Static domain
+{ "forward": "api.example.com" }
+
+// Per-user subdomain
+{ "forward": "$USER-api.example.com" }
+// alice → alice-api.example.com
+
+// Custom identifier
+{ "forward": "$TUNA_USER-staging.example.com" }
+// TUNA_USER=v2 → v2-staging.example.com
+```
+
+---
+
+### port
+
+**Type:** `number`  
+**Required:** Yes
+
+The local port to forward traffic to.
+
+```json
+{
+  "tuna": {
+    "port": 3000
+  }
+}
+```
+
+**Validation:**
+- Must be an integer
+- Must be between 1 and 65535
+
+**Common Ports:**
+
+| Framework | Default Port |
+|-----------|--------------|
+| Vite | 5173 |
+| Next.js | 3000 |
+| Create React App | 3000 |
+| Remix | 3000 |
+| Express | 3000 |
+| Fastify | 3000 |
+| NestJS | 3000 |
+| FastAPI | 8000 |
+| Django | 8000 |
+| Rails | 3000 |
+
+---
+
+### access
+
+**Type:** `string[]`  
+**Required:** No  
+**Default:** `undefined` (public access)
+
+Array of email addresses or domains that can access the tunnel.
+
+```json
+{
+  "tuna": {
+    "access": ["@company.com", "contractor@gmail.com"]
+  }
+}
+```
+
+**Patterns:**
+
+| Pattern | Description | Example |
+|---------|-------------|---------|
+| `@domain.com` | Allow all emails from domain | `@company.com` |
+| `email@domain.com` | Allow specific email | `alice@gmail.com` |
+
+**Validation:**
+- Domain patterns must start with `@`
+- Email addresses must be valid format
+- Empty array `[]` is treated as no access control
+
+**Examples:**
+
+```json
+// Public (no authentication)
+{ "access": undefined }
+// or simply omit the field
+
+// Company only
+{ "access": ["@mycompany.com"] }
+
+// Specific people
+{ "access": ["alice@gmail.com", "bob@outlook.com"] }
+
+// Mixed
+{ "access": ["@mycompany.com", "contractor@external.com"] }
+```
+
+---
+
+## Full Example
+
+```json
+{
+  "name": "my-api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000,
+    "access": ["@mycompany.com", "client@clientcorp.com"]
+  }
+}
+```
+
+## Validation Errors
+
+### Missing forward
+
+```
+Error: Missing "forward" in tuna config
+```
+
+### Missing port
+
+```
+Error: Missing "port" in tuna config
+```
+
+### Invalid port
+
+```
+Error: "port" must be a number
+Error: "port" must be between 1 and 65535
+```
+
+### Invalid domain
+
+```
+Error: Invalid domain format: $INVALID-app.example.com
+```
+
+This usually means an environment variable didn't resolve correctly.
+
+### Unresolved variables
+
+```
+Error: Unresolved environment variables in forward field: $UNDEFINED-app.example.com
+Supported: $USER, $TUNA_USER, $HOME
+```
+
+## TypeScript Types
+
+```typescript
+interface TunaConfig {
+  /**
+   * Domain to expose. Supports environment variable interpolation.
+   * @example "my-app.example.com"
+   * @example "$USER-api.example.com"
+   */
+  forward: string;
+
+  /**
+   * Local port to forward traffic to.
+   * @example 3000
+   */
+  port: number;
+
+  /**
+   * Access control rules. Omit for public access.
+   * @example ["@company.com", "user@gmail.com"]
+   */
+  access?: string[];
+}
+```

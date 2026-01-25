@@ -1,0 +1,55 @@
+# Tuna
+
+**Cloudflare Tunnels for humans.** Wrap any dev command with a secure, persistent tunnel.
+
+```bash
+# Before: Manual tunnel setup nightmare
+cloudflared tunnel create my-tunnel
+cloudflared tunnel route dns my-tunnel my-app.example.com
+cloudflared tunnel run my-tunnel &
+vite dev --port 3000
+
+# After: Just prefix with tuna
+tuna vite dev --port 3000
+```
+
+## Features
+
+- **Free custom domains** - Use your own domain, no random URLs
+- **Persistent tunnels** - Survives terminal restarts (runs as a service)
+- **Team-friendly** - `$USER` variable prevents subdomain conflicts  
+- **Zero Trust Access** - Restrict by email/domain, defined in config
+- **Transparent wrapper** - Colors, TTY, exit codes all preserved
+
+## Quick Start
+
+:::code-group
+
+```bash [npm]
+npm install -g tuna
+```
+
+```bash [pnpm]
+pnpm add -g tuna
+```
+
+```bash [npx]
+npx tuna <command>
+```
+
+:::
+
+Then run:
+
+```bash
+# Login once
+tuna --login
+
+# Configure your project
+tuna --init
+
+# Run with tunnel
+tuna npm run dev
+```
+
+[Get started →](/guide/getting-started)

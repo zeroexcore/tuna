@@ -1,0 +1,144 @@
+# tuna \<command\>
+
+The default command - wraps your dev server with a Cloudflare tunnel.
+
+## Usage
+
+```bash
+tuna <command> [args...]
+```
+
+## Examples
+
+```bash
+# Node.js / npm scripts
+tuna npm run dev
+tuna npm start
+
+# Vite
+tuna vite dev --port 3000
+
+# Next.js
+tuna next dev
+
+# Plain Node
+tuna node server.js
+
+# Python
+tuna python -m http.server 8080
+
+# Any command
+tuna ./start-dev.sh
+```
+
+## What It Does
+
+1. **Reads configuration** from `package.json`
+2. **Authenticates** with Cloudflare (biometric via Keychain)
+3. **Creates tunnel** if it doesn't exist
+4. **Sets up DNS** record pointing to tunnel
+5. **Configures access control** if specified
+6. **Starts cloudflared** as a background service
+7. **Runs your command** with full stdio passthrough
+8. **Exits** with your command's exit code
+
+## Output
+
+```bash
+$ tuna npm run dev
+
+🔐 Touch ID required
+✓ Retrieved credentials for example.com
+✓ Tunnel ready (tuna-alice-api-example-com)
+✓ DNS: alice-api.example.com → tunnel
+✓ Service running
+
+🌐 https://alice-api.example.com → localhost:3000
+
+> my-app@1.0.0 dev
+> vite
+
+  VITE v5.0.0  ready in 234 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Tunnel:  https://alice-api.example.com/
+```
+
+## Behavior
+
+### Stdio Passthrough
+
+All input and output passes through transparently:
+
+- **stdin** - Interactive prompts work
+- **stdout** - Colors and formatting preserved
+- **stderr** - Error output preserved
+- **TTY** - Terminal features work (progress bars, etc.)
+
+### Signal Handling
+
+| Signal | Behavior |
+|--------|----------|
+| `Ctrl+C` (SIGINT) | Forwarded to child process |
+| `SIGTERM` | Forwarded to child process |
+| `SIGHUP` | Forwarded to child process |
+
+The tunnel **continues running** after your command exits. This is intentional - it allows you to restart your dev server without recreating the tunnel.
+
+### Exit Codes
+
+Tuna exits with the same code as your command:
+
+| Your Command | Tuna Exit Code |
+|--------------|----------------|
+| Exits 0 | 0 |
+| Exits 1 | 1 |
+| Killed by signal | 128 + signal |
+| Ctrl+C | 130 |
+
+## Configuration Required
+
+Your `package.json` must have a `tuna` section:
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+  }
+}
+```
+
+See [Configuration](/guide/configuration) for all options.
+
+## Idempotent
+
+Running `tuna` multiple times is safe:
+
+- Tunnel is reused if it exists
+- DNS record is updated if needed
+- Service is restarted with new config
+- Access policies are synced
+
+## Port Matching
+
+Make sure your `port` config matches your dev server:
+
+```json
+{
+  "tuna": {
+    "port": 3000  // Must match!
+  }
+}
+```
+
+```bash
+tuna vite dev --port 3000  # ✅ Matches
+tuna vite dev --port 4000  # ❌ Won't work - tunnel points to 3000
+```
+
+## See Also
+
+- [Configuration](/guide/configuration) - All config options
+- [tuna --stop](/commands/stop) - Stop the tunnel service
+- [tuna --list](/commands/list) - View active tunnels

@@ -1,0 +1,186 @@
+# Environment Variables
+
+Tuna supports environment variables for configuration and customization.
+
+## Config Interpolation
+
+These variables can be used in the `forward` field of your tuna config:
+
+### $USER
+
+The current system username.
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com"
+  }
+}
+```
+
+**Source:** `process.env.USER`  
+**Fallback:** `unknown`
+
+**Example:**
+```bash
+# User "alice" runs:
+tuna npm run dev
+# → alice-api.example.com
+```
+
+### $TUNA_USER
+
+Custom identifier that overrides `$USER`.
+
+```json
+{
+  "tuna": {
+    "forward": "$TUNA_USER-api.example.com"
+  }
+}
+```
+
+**Source:** `process.env.TUNA_USER`  
+**Fallback:** `$USER`
+
+**Example:**
+```bash
+# Override for a specific environment
+TUNA_USER=staging tuna npm run dev
+# → staging-api.example.com
+
+# Without override, falls back to $USER
+tuna npm run dev
+# → alice-api.example.com
+```
+
+### $HOME
+
+User's home directory. Rarely used in domains.
+
+**Source:** `process.env.HOME`  
+**Fallback:** `~`
+
+---
+
+## Runtime Environment Variables
+
+These variables affect tuna's behavior at runtime:
+
+### TUNA_API_TOKEN
+
+Override Keychain credentials with an API token.
+
+```bash
+export TUNA_API_TOKEN=your_cloudflare_token
+export TUNA_ACCOUNT_ID=your_account_id
+tuna npm run dev
+```
+
+**Use case:** CI/CD environments where Keychain isn't available.
+
+### TUNA_ACCOUNT_ID
+
+Cloudflare account ID (used with `TUNA_API_TOKEN`).
+
+```bash
+export TUNA_ACCOUNT_ID=699d98642c564d2e855e9661899b7252
+```
+
+### TUNA_CLOUDFLARED_PATH
+
+Custom path to cloudflared binary.
+
+```bash
+export TUNA_CLOUDFLARED_PATH=/custom/path/cloudflared
+tuna npm run dev
+```
+
+**Default behavior:** Tuna looks for cloudflared in:
+1. `PATH`
+2. `~/.tuna/bin/cloudflared`
+
+### TUNA_HOME
+
+Override the tuna data directory.
+
+```bash
+export TUNA_HOME=/custom/tuna/data
+tuna npm run dev
+```
+
+**Default:** `~/.tuna`
+
+**Contains:**
+- `tunnels/` - Tunnel credential files
+- `config-*.yml` - Cloudflared configs
+- `bin/` - Downloaded cloudflared binary
+
+---
+
+## Examples
+
+### Team Development
+
+Each developer gets their own subdomain automatically:
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-dev.example.com",
+    "port": 3000
+  }
+}
+```
+
+### Feature Branches
+
+Use `TUNA_USER` for feature-specific tunnels:
+
+```bash
+# Feature branch
+TUNA_USER=feature-auth tuna npm run dev
+# → feature-auth-dev.example.com
+
+# Main branch
+TUNA_USER=main tuna npm run dev
+# → main-dev.example.com
+```
+
+### CI/CD Pipeline
+
+Use environment variables instead of Keychain:
+
+```yaml
+# GitHub Actions
+- name: Start tunnel
+  env:
+    TUNA_API_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+    TUNA_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    TUNA_USER: ci-${{ github.run_id }}
+  run: tuna npm run dev &
+```
+
+### Custom cloudflared
+
+Use a specific version of cloudflared:
+
+```bash
+export TUNA_CLOUDFLARED_PATH=/opt/cloudflared-2024.1.0
+tuna npm run dev
+```
+
+---
+
+## Precedence
+
+For config interpolation:
+
+1. `$TUNA_USER` (if set)
+2. `$USER` (system username)
+3. `unknown` (fallback)
+
+For credentials:
+
+1. `TUNA_API_TOKEN` + `TUNA_ACCOUNT_ID` (if both set)
+2. macOS Keychain (default)

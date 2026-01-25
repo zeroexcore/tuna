@@ -1,0 +1,151 @@
+# tuna --delete
+
+Delete a tunnel and clean up all associated resources.
+
+## Usage
+
+```bash
+# Delete tunnel for current project
+tuna --delete
+
+# Delete specific tunnel by name
+tuna --delete <tunnel-name>
+```
+
+## Examples
+
+```bash
+# Delete based on package.json config
+tuna --delete
+
+# Delete specific tunnel
+tuna --delete tuna-alice-api-example-com
+```
+
+## What It Does
+
+1. Identifies the tunnel (from config or argument)
+2. Authenticates with Cloudflare
+3. Asks for confirmation
+4. Stops the service if running
+5. Deletes the tunnel from Cloudflare
+6. Removes DNS records
+7. Removes local credential files
+8. Removes config files
+9. Uninstalls service if no other tunnels
+
+## Output
+
+```bash
+$ tuna --delete
+
+🔐 Touch ID required
+
+Found tunnel: tuna-alice-api-example-com
+  Domain: alice-api.example.com
+  Created: 2024-01-23
+
+⚠  This will:
+  - Delete the tunnel from Cloudflare
+  - Remove DNS records
+  - Delete local configuration
+
+? Continue? Yes
+
+✓ Tunnel deleted
+✓ DNS records removed
+✓ Local files removed
+✓ Service uninstalled
+```
+
+## Skip Confirmation
+
+Use `--yes` or `-y` to skip confirmation:
+
+```bash
+tuna --delete --yes
+tuna --delete tuna-old-tunnel --yes
+```
+
+## Finding Tunnel Names
+
+List tunnels to find the name:
+
+```bash
+$ tuna --list
+
+NAME                           STATUS    DOMAIN
+tuna-alice-api-example-com     ● active  alice-api.example.com
+tuna-old-project-example-com   ○ down    old-project.example.com
+
+$ tuna --delete tuna-old-project-example-com
+```
+
+## What Gets Deleted
+
+| Resource | Location | Deleted? |
+|----------|----------|----------|
+| Tunnel | Cloudflare | ✅ |
+| DNS CNAME record | Cloudflare | ✅ |
+| Access Application | Cloudflare | ✅ |
+| Tunnel credentials | `~/.tuna/tunnels/` | ✅ |
+| Ingress config | `~/.tuna/config-*.yml` | ✅ |
+| API credentials | Keychain | ❌ (kept) |
+
+## What's NOT Deleted
+
+- Your Cloudflare account credentials (in Keychain)
+- Other tunnels
+- The `tuna` config in package.json
+
+## Use Cases
+
+### Clean Up Old Projects
+
+Remove tunnels for projects you're no longer working on:
+
+```bash
+tuna --list
+tuna --delete tuna-old-project-example-com
+```
+
+### Start Fresh
+
+Delete and recreate a tunnel:
+
+```bash
+tuna --delete
+tuna npm run dev  # Creates new tunnel
+```
+
+### Team Member Leaving
+
+Clean up a team member's tunnel:
+
+```bash
+tuna --delete tuna-bob-api-example-com
+```
+
+## Error Handling
+
+### Tunnel Not Found
+
+```bash
+$ tuna --delete tuna-nonexistent
+Error: Tunnel 'tuna-nonexistent' not found
+```
+
+### No package.json
+
+When running without a tunnel name:
+
+```bash
+$ tuna --delete
+Error: No package.json found. Specify tunnel name:
+  tuna --delete <tunnel-name>
+```
+
+## See Also
+
+- [tuna --list](/commands/list) - Find tunnel names
+- [tuna --stop](/commands/stop) - Stop without deleting

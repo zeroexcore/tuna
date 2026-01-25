@@ -1,0 +1,230 @@
+# Access Control
+
+Tuna integrates with Cloudflare Access to restrict who can access your tunnels. Control access through your `package.json` - no dashboard required.
+
+## Overview
+
+By default, tunnels are public. Anyone with the URL can access your dev server. Add the `access` field to require authentication:
+
+```json
+{
+  "tuna": {
+    "forward": "staging.example.com",
+    "port": 3000,
+    "access": ["@company.com"]
+  }
+}
+```
+
+Now only people with `@company.com` emails can access the tunnel.
+
+## How It Works
+
+1. User visits your tunnel URL
+2. Cloudflare Access intercepts the request
+3. User enters their email
+4. They receive a one-time PIN via email
+5. After verification, they can access your dev server
+6. Session lasts 24 hours by default
+
+## Configuration
+
+### Allow Email Domain
+
+Use `@domain` to allow all emails from a domain:
+
+```json
+{
+  "tuna": {
+    "access": ["@company.com"]
+  }
+}
+```
+
+This allows:
+- `alice@company.com` ✅
+- `bob@company.com` ✅
+- `eve@gmail.com` ❌
+
+### Allow Specific Emails
+
+List individual email addresses:
+
+```json
+{
+  "tuna": {
+    "access": ["alice@gmail.com", "bob@outlook.com"]
+  }
+}
+```
+
+### Mixed Rules
+
+Combine domains and specific emails:
+
+```json
+{
+  "tuna": {
+    "access": [
+      "@company.com",           
+      "contractor@gmail.com",   
+      "client@clientcorp.com"   
+    ]
+  }
+}
+```
+
+## Examples
+
+### Internal Development
+
+Only your team can access:
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-dev.example.com",
+    "port": 3000,
+    "access": ["@mycompany.com"]
+  }
+}
+```
+
+### Client Demo
+
+Your team plus specific client contacts:
+
+```json
+{
+  "tuna": {
+    "forward": "demo.example.com",
+    "port": 3000,
+    "access": [
+      "@mycompany.com",
+      "product@clientcorp.com",
+      "engineering@clientcorp.com"
+    ]
+  }
+}
+```
+
+### Contractor Access
+
+Specific external people:
+
+```json
+{
+  "tuna": {
+    "forward": "staging.example.com",
+    "port": 3000,
+    "access": [
+      "@mycompany.com",
+      "contractor1@freelance.com",
+      "contractor2@agency.com"
+    ]
+  }
+}
+```
+
+### Public Access
+
+Omit the `access` field for public tunnels:
+
+```json
+{
+  "tuna": {
+    "forward": "public-demo.example.com",
+    "port": 3000
+  }
+}
+```
+
+## Updating Access
+
+Simply change the `access` array and restart tuna:
+
+```json
+{
+  "tuna": {
+    "access": [
+      "@company.com",
+      "newperson@external.com"  // Added
+    ]
+  }
+}
+```
+
+```bash
+# Restart to apply changes
+tuna npm run dev
+```
+
+Tuna automatically syncs the access policy with Cloudflare.
+
+## Removing Access Control
+
+Remove the `access` field to make the tunnel public:
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+    // No "access" field = public
+  }
+}
+```
+
+The Access application will be automatically deleted.
+
+## User Experience
+
+When someone visits a protected tunnel:
+
+1. **Access page** - Cloudflare shows a branded login page
+2. **Email input** - User enters their email
+3. **Verification** - They receive a 6-digit code via email
+4. **Access granted** - After entering the code, they're in
+
+The session is remembered for 24 hours (configurable in Cloudflare dashboard).
+
+## Troubleshooting
+
+### "Access Denied" for Valid User
+
+Check that:
+- Email is spelled correctly in config
+- For domain rules, ensure the `@` prefix is included
+- User is checking the correct email inbox
+
+### User Not Receiving Code
+
+- Check spam/junk folder
+- Cloudflare emails come from `noreply@notify.cloudflare.com`
+- Some corporate email filters block these
+
+### Access Not Updating
+
+If changes don't take effect:
+
+```bash
+# Stop the current tunnel
+tuna --stop
+
+# Start again
+tuna npm run dev
+```
+
+## Limitations
+
+- **Authentication method**: Currently only email OTP (no SSO/SAML)
+- **Session duration**: 24 hours (configurable in Cloudflare dashboard only)
+- **Rate limits**: Cloudflare Access free tier has usage limits
+
+## Advanced: Cloudflare Dashboard
+
+For more advanced policies (SSO, device posture, etc.), use the Cloudflare Zero Trust dashboard directly. Tuna-created applications appear under:
+
+**Zero Trust → Access → Applications**
+
+You can modify them there, but changes may be overwritten next time tuna runs.

@@ -1,0 +1,77 @@
+# Getting Started
+
+This guide will help you set up Tuna and create your first tunnel in under 5 minutes.
+
+## Prerequisites
+
+- Node.js 18 or higher
+- A Cloudflare account with a domain
+- macOS (Linux/Windows support coming soon)
+
+## Installation
+
+:::code-group
+
+```bash [npm]
+npm install -g tuna
+```
+
+```bash [pnpm]
+pnpm add -g tuna
+```
+
+:::
+
+## Setup
+
+### 1. Create a Cloudflare API Token
+
+Visit [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) and create a token with these permissions:
+
+| Scope | Permission |
+|-------|------------|
+| Account → Cloudflare Tunnel | Edit |
+| Account → Access: Apps and Policies | Edit |
+| Zone → DNS | Edit |
+| Account → Account Settings | Read |
+
+### 2. Login to Tuna
+
+```bash
+tuna --login
+```
+
+Enter your API token and domain when prompted. Credentials are stored securely in your macOS Keychain.
+
+### 3. Configure Your Project
+
+Run the interactive setup:
+
+```bash
+tuna --init
+```
+
+Or manually add to your `package.json`:
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+  }
+}
+```
+
+### 4. Run Your Dev Server
+
+```bash
+tuna npm run dev
+```
+
+Your local server is now available at `https://my-app.example.com`!
+
+## Next Steps
+
+- Team Collaboration - Set up unique URLs per developer
+- Access Control - Restrict who can access your tunnel
+- Configuration Reference - All configuration options

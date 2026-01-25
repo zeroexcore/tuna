@@ -1,0 +1,134 @@
+# Installation
+
+## Requirements
+
+- **Node.js 18+** - Tuna uses modern Node.js features
+- **macOS** - Currently the only supported platform (Linux/Windows coming soon)
+- **Cloudflare account** - With at least one domain added
+
+## Install from npm
+
+:::code-group
+
+```bash [npm]
+npm install -g tuna
+```
+
+```bash [pnpm]
+pnpm add -g tuna
+```
+
+```bash [yarn]
+yarn global add tuna
+```
+
+:::
+
+## Verify Installation
+
+```bash
+tuna --version
+```
+
+## Using npx
+
+You can also use tuna without installing globally:
+
+```bash
+npx tuna npm run dev
+```
+
+## First-Time Setup
+
+After installation, you need to configure your Cloudflare credentials:
+
+### 1. Create a Cloudflare API Token
+
+1. Go to [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Click "Create Token"
+3. Use "Create Custom Token"
+4. Add these permissions:
+
+| Scope | Resource | Permission |
+|-------|----------|------------|
+| Account | Cloudflare Tunnel | Edit |
+| Account | Access: Apps and Policies | Edit |
+| Zone | DNS | Edit |
+| Account | Account Settings | Read |
+
+5. Under "Zone Resources", select your domain or "All zones"
+6. Click "Continue to summary" → "Create Token"
+7. **Copy the token** (you won't see it again!)
+
+### 2. Run Login
+
+```bash
+tuna --login
+```
+
+You'll be prompted for:
+- Your API token
+- Your root domain (e.g., `example.com`)
+
+Credentials are stored securely in your macOS Keychain.
+
+### 3. Initialize Your Project
+
+```bash
+cd your-project
+tuna --init
+```
+
+Or manually add to `package.json`:
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+  }
+}
+```
+
+### 4. Start Using Tuna
+
+```bash
+tuna npm run dev
+```
+
+## Cloudflared Binary
+
+Tuna needs the `cloudflared` binary to create tunnels. It will:
+
+1. Check if `cloudflared` is already installed (via Homebrew, etc.)
+2. If not found, automatically download it to `~/.tuna/bin/`
+
+To install cloudflared manually:
+
+```bash
+# macOS with Homebrew
+brew install cloudflared
+
+# Or download directly
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64 -o /usr/local/bin/cloudflared
+chmod +x /usr/local/bin/cloudflared
+```
+
+## Updating
+
+```bash
+npm update -g tuna
+```
+
+## Uninstalling
+
+```bash
+# Remove the package
+npm uninstall -g tuna
+
+# Optional: Remove credentials from Keychain
+# Open Keychain Access, search for "tuna-credentials"
+
+# Optional: Remove tuna data
+rm -rf ~/.tuna
+```

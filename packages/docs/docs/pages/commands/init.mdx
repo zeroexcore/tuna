@@ -1,0 +1,112 @@
+# tuna --init
+
+Interactive setup wizard for configuring tuna in your project.
+
+## Usage
+
+```bash
+tuna --init
+```
+
+## What It Does
+
+1. Checks for existing `package.json`
+2. Detects if tuna is already configured
+3. Prompts for configuration options
+4. Writes config to `package.json`
+
+## Interactive Flow
+
+```bash
+$ tuna --init
+
+🐟 Tuna Project Setup
+
+? Use $USER variable for unique subdomains per developer? Yes
+? Subdomain pattern (will become $USER-<pattern>.example.com): api
+? Local port to forward: 3000
+? Enable Zero Trust Access control? Yes
+? Access rules (comma-separated emails or @domains): @mycompany.com
+
+✓ Configuration saved to package.json
+
+Added to package.json:
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000,
+    "access": ["@mycompany.com"]
+  }
+}
+
+Next steps:
+  Run: tuna npm run dev
+
+Your tunnel URL will be:
+  https://alice-api.example.com
+```
+
+## Options
+
+### Subdomain Pattern
+
+Choose a pattern for your subdomain:
+
+- With `$USER`: `$USER-api.example.com` → `alice-api.example.com`
+- Without: `api.example.com` (fixed subdomain)
+
+### Port
+
+The local port your dev server runs on. Common defaults:
+
+| Framework | Default Port |
+|-----------|--------------|
+| Vite | 5173 |
+| Next.js | 3000 |
+| Create React App | 3000 |
+| Express | 3000 |
+| FastAPI | 8000 |
+
+### Access Control
+
+Optionally restrict who can access your tunnel:
+
+- `@company.com` - Anyone with that email domain
+- `user@example.com` - Specific email addresses
+
+## Overwriting Existing Config
+
+If tuna is already configured, you'll be asked to confirm:
+
+```bash
+$ tuna --init
+
+? Tuna config already exists. Overwrite? No
+Keeping existing config.
+```
+
+## Manual Alternative
+
+Instead of `--init`, you can manually add to `package.json`:
+
+```json
+{
+  "name": "my-app",
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000,
+    "access": ["@mycompany.com"]
+  }
+}
+```
+
+## Prerequisites
+
+- Must have a `package.json` in current directory
+- Should have run `tuna --login` first (for domain suggestion)
+
+## See Also
+
+- [Configuration](/guide/configuration) - All config options
+- [tuna --login](/commands/login) - Set up credentials first
+- [Team Collaboration](/guide/team-collaboration) - Using $USER for teams

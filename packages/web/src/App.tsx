@@ -6,6 +6,7 @@ function App() {
       {/* Hero */}
       <header className="container mx-auto px-4 py-20 text-center">
         <h1 className="text-5xl font-bold mb-6">
+          <span className="text-6xl mr-3">🐟</span>
           <span className="text-blue-400">tuna</span>
         </h1>
         <p className="text-2xl text-slate-300 mb-8">

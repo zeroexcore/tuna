@@ -3,12 +3,15 @@ import { defineConfig } from 'vocs';
 export default defineConfig({
   title: 'Tuna',
   description: 'Cloudflare Tunnels for humans',
-  logoUrl: '/logo.svg',
-  iconUrl: '/favicon.ico',
+  logoUrl: {
+    light: '/logo.svg',
+    dark: '/logo.svg',
+  },
+  iconUrl: '/favicon.svg',
   topNav: [
     { text: 'Guide', link: '/guide/getting-started' },
     { text: 'API', link: '/api/config' },
-    { text: 'GitHub', link: 'https://github.com/YOUR_ORG/tuna' },
+    { text: 'GitHub', link: 'https://github.com/zeroexcore/tuna' },
   ],
   sidebar: [
     {
@@ -50,7 +53,7 @@ export default defineConfig({
   socials: [
     {
       icon: 'github',
-      link: 'https://github.com/YOUR_ORG/tuna',
+      link: 'https://github.com/zeroexcore/tuna',
     },
   ],
   theme: {

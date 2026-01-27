@@ -1,6 +1,6 @@
 {
   "name": "@zeroexcore/tuna",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cloudflare Tunnel Wrapper for Development Servers",
   "type": "module",
   "repository": {

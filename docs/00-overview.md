@@ -21,6 +21,7 @@ $ tuna vite dev --port 3000
 ```
 
 Tuna automatically:
+
 1. Creates a Cloudflare tunnel
 2. Sets up DNS records
 3. Installs cloudflared as a system service (launchd)
@@ -32,11 +33,13 @@ Tuna automatically:
 ## Key Features
 
 ### 1. Secure Credential Storage
+
 - Credentials stored in macOS Keychain (not in package.json)
 - Biometric authentication required
 - No secrets in version control
 
 ### 2. Zero Configuration Overhead
+
 - Minimal config in package.json:
   ```json
   {
@@ -55,10 +58,12 @@ Tuna automatically:
     }
   }
   ```
+
   - `$USER-api.example.com` → `alice-api.example.com` for Alice
   - `$USER-api.example.com` → `bob-api.example.com` for Bob
 
 ### 3. Zero Trust Access Control
+
 - Restrict tunnel access by email or email domain:
   ```json
   {
@@ -75,16 +80,19 @@ Tuna automatically:
 - Config-driven: changes to `access` array sync automatically
 
 ### 4. Transparent Wrapper
+
 - All stdio passes through (colors, progress bars, etc.)
 - Exits with same code as wrapped command
 - Works with any dev tool (vite, next, node, python, etc.)
 
 ### 5. Persistent Tunnels
+
 - Tunnels run as system services (launchd on macOS)
 - Survive terminal/process restarts
 - No need to keep tuna process running
 
 ### 6. Simple Management
+
 - `tuna --init` - Interactive project setup
 - `tuna --list` - View all tunnels
 - `tuna --stop` - Stop service
@@ -162,10 +170,12 @@ Tuna automatically:
 ## Platform Support
 
 **Current (v0.1)**: macOS only
+
 - Keychain for credential storage
 - launchd for service management
 
 **Roadmap**: Linux and Windows support
+
 - Linux: libsecret + systemd
 - Windows: Credential Manager + Windows Service
 
@@ -173,12 +183,12 @@ Tuna automatically:
 
 ```bash
 # Install globally from npm
-npm install -g tuna
+npm install -g @zeroexcore/tuna
 # or
-pnpm add -g tuna
+pnpm add -g @zeroexcore/tuna
 
 # Or use directly with npx
-npx tuna <command>
+npx @zeroexcore/tuna <command>
 ```
 
 ## Quick Start
@@ -211,11 +221,11 @@ tuna vite dev --port 3000
 
 ## Configuration Reference
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `forward` | string | Yes | Domain to expose (supports $USER, $TUNA_USER, $HOME) |
-| `port` | number | Yes | Local port to forward to |
-| `access` | string[] | No | Email addresses and/or domains for access control |
+| Field     | Type     | Required | Description                                          |
+| --------- | -------- | -------- | ---------------------------------------------------- |
+| `forward` | string   | Yes      | Domain to expose (supports $USER, $TUNA_USER, $HOME) |
+| `port`    | number   | Yes      | Local port to forward to                             |
+| `access`  | string[] | No       | Email addresses and/or domains for access control    |
 
 ### Access Config Examples
 
@@ -245,15 +255,15 @@ Tuna is designed around these principles:
 
 ## Comparison to Alternatives
 
-| Feature | Tuna | ngrok | localtunnel | cloudflared |
-|---------|------|-------|-------------|-------------|
-| Free custom domains | ✅ | ❌ | ❌ | ✅ |
-| Persistent tunnels | ✅ | ❌ | ❌ | ✅ |
-| Zero config | ✅ | ❌ | ✅ | ❌ |
-| Secure credentials | ✅ | ✅ | N/A | ❌ |
-| Wrapper mode | ✅ | ❌ | ❌ | ❌ |
-| Team collaboration | ✅ | ❌ | ❌ | ❌ |
-| Access control (config) | ✅ | ❌ | ❌ | ❌ (dashboard only) |
+| Feature                 | Tuna | ngrok | localtunnel | cloudflared         |
+| ----------------------- | ---- | ----- | ----------- | ------------------- |
+| Free custom domains     | ✅   | ❌    | ❌          | ✅                  |
+| Persistent tunnels      | ✅   | ❌    | ❌          | ✅                  |
+| Zero config             | ✅   | ❌    | ✅          | ❌                  |
+| Secure credentials      | ✅   | ✅    | N/A         | ❌                  |
+| Wrapper mode            | ✅   | ❌    | ❌          | ❌                  |
+| Team collaboration      | ✅   | ❌    | ❌          | ❌                  |
+| Access control (config) | ✅   | ❌    | ❌          | ❌ (dashboard only) |
 
 ## Repository Structure
 

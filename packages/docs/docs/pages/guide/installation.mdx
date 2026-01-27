@@ -11,15 +11,15 @@
 :::code-group
 
 ```bash [npm]
-npm install -g tuna
+npm install -g @zeroexcore/tuna
 ```
 
 ```bash [pnpm]
-pnpm add -g tuna
+pnpm add -g @zeroexcore/tuna
 ```
 
 ```bash [yarn]
-yarn global add tuna
+yarn global add @zeroexcore/tuna
 ```
 
 :::
@@ -35,7 +35,7 @@ tuna --version
 You can also use tuna without installing globally:
 
 ```bash
-npx tuna npm run dev
+npx @zeroexcore/tuna npm run dev
 ```
 
 ## First-Time Setup
@@ -49,12 +49,12 @@ After installation, you need to configure your Cloudflare credentials:
 3. Use "Create Custom Token"
 4. Add these permissions:
 
-| Scope | Resource | Permission |
-|-------|----------|------------|
-| Account | Cloudflare Tunnel | Edit |
-| Account | Access: Apps and Policies | Edit |
-| Zone | DNS | Edit |
-| Account | Account Settings | Read |
+| Scope   | Resource                  | Permission |
+| ------- | ------------------------- | ---------- |
+| Account | Cloudflare Tunnel         | Edit       |
+| Account | Access: Apps and Policies | Edit       |
+| Zone    | DNS                       | Edit       |
+| Account | Account Settings          | Read       |
 
 5. Under "Zone Resources", select your domain or "All zones"
 6. Click "Continue to summary" → "Create Token"
@@ -67,6 +67,7 @@ tuna --login
 ```
 
 You'll be prompted for:
+
 - Your API token
 - Your root domain (e.g., `example.com`)
 
@@ -117,14 +118,14 @@ chmod +x /usr/local/bin/cloudflared
 ## Updating
 
 ```bash
-npm update -g tuna
+npm update -g @zeroexcore/tuna
 ```
 
 ## Uninstalling
 
 ```bash
 # Remove the package
-npm uninstall -g tuna
+npm uninstall -g @zeroexcore/tuna
 
 # Optional: Remove credentials from Keychain
 # Open Keychain Access, search for "tuna-credentials"

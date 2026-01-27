@@ -1,0 +1,14 @@
+# Turbo cache
+.turbo/
+
+# Tests
+tests/
+*.test.ts
+vitest.config.ts
+
+# TypeScript config (not needed for runtime)
+tsconfig.json
+
+# Development files
+.eslintrc*
+.prettierrc*

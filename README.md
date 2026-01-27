@@ -2,7 +2,7 @@
 
 **Cloudflare Tunnels for humans.** Wrap any dev command with a secure, persistent tunnel.
 
-[![npm version](https://img.shields.io/npm/v/tuna.svg)](https://www.npmjs.com/package/tuna)
+[![npm version](https://img.shields.io/npm/v/@zeroexcore/tuna.svg)](https://www.npmjs.com/package/@zeroexcore/tuna)
 [![CI](https://github.com/zeroexcore/tuna/actions/workflows/ci.yml/badge.svg)](https://github.com/zeroexcore/tuna/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -42,11 +42,11 @@ tuna vite dev --port 3000
 ## Installation
 
 ```bash
-npm install -g tuna
+npm install -g @zeroexcore/tuna
 # or
-pnpm add -g tuna
+pnpm add -g @zeroexcore/tuna
 # or
-npx tuna <command>
+npx @zeroexcore/tuna <command>
 ```
 
 ## Quick Start

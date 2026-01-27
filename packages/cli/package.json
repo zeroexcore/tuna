@@ -1,5 +1,5 @@
 {
-  "name": "tuna",
+  "name": "@zeroexcore/tuna",
   "version": "0.1.0",
   "description": "Cloudflare Tunnel Wrapper for Development Servers",
   "type": "module",
@@ -12,6 +12,9 @@
     "url": "https://github.com/zeroexcore/tuna/issues"
   },
   "homepage": "https://github.com/zeroexcore/tuna#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "tuna": "./src/index.ts"
   },

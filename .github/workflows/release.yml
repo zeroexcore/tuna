@@ -37,7 +37,7 @@ jobs:
         run: pnpm test
 
       - name: Publish to npm
-        run: pnpm --filter tuna publish --provenance --access public --no-git-checks
+        run: pnpm --filter @zeroexcore/tuna publish --provenance --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

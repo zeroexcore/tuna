@@ -200,7 +200,7 @@ Users authenticate via Cloudflare Access (email OTP by default).
 
 ## Security
 
-- **Credentials** stored in macOS Keychain with biometric auth
+- **Credentials** stored locally in `~/.config/tuna/` with restrictive file permissions
 - **No secrets** in package.json or environment variables
 - **Zero Trust Access** for fine-grained access control
 - **TLS everywhere** via Cloudflare

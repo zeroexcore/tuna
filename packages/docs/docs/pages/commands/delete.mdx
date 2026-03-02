@@ -39,8 +39,6 @@ tuna --delete tuna-alice-api-example-com
 ```bash
 $ tuna --delete
 
-🔐 Touch ID required
-
 Found tunnel: tuna-alice-api-example-com
   Domain: alice-api.example.com
   Created: 2024-01-23
@@ -90,11 +88,11 @@ $ tuna --delete tuna-old-project-example-com
 | Access Application | Cloudflare | ✅ |
 | Tunnel credentials | `~/.tuna/tunnels/` | ✅ |
 | Ingress config | `~/.tuna/config-*.yml` | ✅ |
-| API credentials | Keychain | ❌ (kept) |
+| API credentials | `~/.config/tuna/` | ❌ (kept) |
 
 ## What's NOT Deleted
 
-- Your Cloudflare account credentials (in Keychain)
+- Your Cloudflare account credentials (in `~/.config/tuna/`)
 - Other tunnels
 - The `tuna` config in package.json
 

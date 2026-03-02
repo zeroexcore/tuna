@@ -15,7 +15,7 @@ tuna --login
 3. Fetches your account ID
 4. Prompts for your root domain
 5. Verifies domain access
-6. Stores credentials in macOS Keychain
+6. Stores credentials in `~/.config/tuna/`
 
 ## Interactive Flow
 
@@ -38,7 +38,7 @@ Required permissions:
 ? Enter your root domain (e.g., example.com): example.com
 ✓ Domain verified
 
-✓ Credentials saved to macOS Keychain
+✓ Credentials saved to ~/.config/tuna/
 
 Next steps:
   1. Add to your package.json:
@@ -71,18 +71,11 @@ Next steps:
 
 ## Credential Storage
 
-Credentials are stored in your macOS Keychain:
+Credentials are stored as JSON files in `~/.config/tuna/credentials/`:
 
-- **Service**: `tuna-credentials-{domain}`
-- **Account**: `{domain}`
-- **Data**: API token, account ID, domain (JSON)
-
-### Security
-
-- Encrypted at rest by macOS
-- Requires biometric auth (Touch ID) or password to access
-- Never stored in files or environment variables
-- Not accessible to other applications
+- One file per domain: `{domain}.json`
+- Files created with `0600` permissions (owner read/write only)
+- Directory created with `0700` permissions
 
 ## Multiple Domains
 
@@ -113,11 +106,10 @@ Run `--login` again to update credentials for a domain. The old credentials will
 - Check that your token has access to that zone
 - Use just the root domain (e.g., `example.com`, not `www.example.com`)
 
-### "Could not save to Keychain"
+### "Could not save credentials"
 
-- Check System Preferences → Security & Privacy → Privacy
-- Ensure your terminal app has Keychain access
-- Try running in a new terminal window
+- Check that `~/.config/tuna/` is writable
+- Verify disk permissions on your home directory
 
 ## See Also
 

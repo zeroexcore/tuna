@@ -14,7 +14,7 @@ import type { Credentials } from '../types/index.ts';
  */
 export async function loginCommand(): Promise<void> {
   console.log(chalk.blue('\n🔐 Tuna Login\n'));
-  console.log(chalk.dim('Store your Cloudflare credentials securely in macOS Keychain.\n'));
+  console.log(chalk.dim('Store your Cloudflare credentials securely in ~/.config/tuna/.\n'));
 
   // Prompt for API token
   console.log(chalk.dim('Create a token at: https://dash.cloudflare.com/profile/api-tokens'));
@@ -39,10 +39,11 @@ export async function loginCommand(): Promise<void> {
     },
   ]);
 
-  // Validate token and get account ID
+  // Validate token and get account info
   const spinner = ora('Validating token...').start();
 
   let accountId: string;
+  let accountName: string;
   try {
     // Create a temporary API instance to validate
     const tempApi = new CloudflareAPI({
@@ -51,8 +52,10 @@ export async function loginCommand(): Promise<void> {
       domain: '',
     });
 
-    accountId = await tempApi.validateToken();
-    spinner.succeed('Token validated');
+    const accountInfo = await tempApi.validateToken();
+    accountId = accountInfo.id;
+    accountName = accountInfo.name;
+    spinner.succeed(`Token validated (${accountName})`);
   } catch (error) {
     spinner.fail('Invalid token');
     console.error(chalk.red(`\nError: ${(error as Error).message}`));
@@ -107,11 +110,12 @@ export async function loginCommand(): Promise<void> {
     const credentials: Credentials = {
       apiToken: apiToken.trim(),
       accountId,
+      accountName,
       domain: domain.trim(),
     };
 
     await storeCredentials(domain.trim(), credentials);
-    saveSpinner.succeed('Credentials saved to macOS Keychain');
+    saveSpinner.succeed('Credentials saved to ~/.config/tuna/');
   } catch (error) {
     saveSpinner.fail('Failed to save credentials');
     console.error(chalk.red(`\nError: ${(error as Error).message}`));

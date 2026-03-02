@@ -60,24 +60,24 @@ export class CloudflareAPI {
   }
 
   /**
-   * Validate API token and get account ID
+   * Validate API token and get account info
    */
-  async validateToken(): Promise<string> {
+  async validateToken(): Promise<{ id: string; name: string }> {
     const verifyResponse = await this.request<{ status: string }>('/user/tokens/verify');
 
     if (!verifyResponse.success) {
       throw new Error('Invalid API token');
     }
 
-    // Get account ID
-    const accountsResponse = await this.request<Array<{ id: string }>>('/accounts');
+    // Get account ID and name
+    const accountsResponse = await this.request<Array<{ id: string; name: string }>>('/accounts');
     const accounts = accountsResponse.result;
 
     if (!accounts || accounts.length === 0) {
       throw new Error('No accounts found for this token');
     }
 
-    return accounts[0].id;
+    return { id: accounts[0].id, name: accounts[0].name };
   }
 
   /**

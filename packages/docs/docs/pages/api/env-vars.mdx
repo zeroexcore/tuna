@@ -69,7 +69,7 @@ These variables affect tuna's behavior at runtime:
 
 ### TUNA_API_TOKEN
 
-Override Keychain credentials with an API token.
+Override stored credentials with an API token.
 
 ```bash
 export TUNA_API_TOKEN=your_cloudflare_token
@@ -77,7 +77,7 @@ export TUNA_ACCOUNT_ID=your_account_id
 tuna npm run dev
 ```
 
-**Use case:** CI/CD environments where Keychain isn't available.
+**Use case:** CI/CD environments or ephemeral containers.
 
 ### TUNA_ACCOUNT_ID
 
@@ -149,7 +149,7 @@ TUNA_USER=main tuna npm run dev
 
 ### CI/CD Pipeline
 
-Use environment variables instead of Keychain:
+Use environment variables instead of stored credentials:
 
 ```yaml
 # GitHub Actions
@@ -183,4 +183,4 @@ For config interpolation:
 For credentials:
 
 1. `TUNA_API_TOKEN` + `TUNA_ACCOUNT_ID` (if both set)
-2. macOS Keychain (default)
+2. `~/.config/tuna/` credential files (default)

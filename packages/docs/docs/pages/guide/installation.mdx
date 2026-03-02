@@ -71,7 +71,7 @@ You'll be prompted for:
 - Your API token
 - Your root domain (e.g., `example.com`)
 
-Credentials are stored securely in your macOS Keychain.
+Credentials are stored locally in `~/.config/tuna/`.
 
 ### 3. Initialize Your Project
 
@@ -127,8 +127,8 @@ npm update -g @zeroexcore/tuna
 # Remove the package
 npm uninstall -g @zeroexcore/tuna
 
-# Optional: Remove credentials from Keychain
-# Open Keychain Access, search for "tuna-credentials"
+# Optional: Remove stored credentials
+rm -rf ~/.config/tuna
 
 # Optional: Remove tuna data
 rm -rf ~/.tuna

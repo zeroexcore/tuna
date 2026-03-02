@@ -1,57 +1,64 @@
 /**
- * Credential management - secure storage in macOS Keychain
+ * Credential management - JSON files in ~/.config/tuna/
  */
 
-import keytar from 'keytar';
+import { readFile, writeFile, readdir, unlink, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
 import type { Credentials } from '../types/index.ts';
 
-// Use a single service name so findCredentials works correctly
-const SERVICE_NAME = 'tuna';
+const CONFIG_DIR = join(homedir(), '.config', 'tuna', 'credentials');
 
-/**
- * Store credentials in macOS Keychain
- */
+async function ensureDir(): Promise<void> {
+  await mkdir(CONFIG_DIR, { recursive: true, mode: 0o700 });
+}
+
+function credPath(domain: string): string {
+  return join(CONFIG_DIR, `${domain}.json`);
+}
+
 export async function storeCredentials(
   domain: string,
   creds: Credentials
 ): Promise<void> {
-  const password = JSON.stringify(creds);
-  await keytar.setPassword(SERVICE_NAME, domain, password);
+  await ensureDir();
+  await writeFile(credPath(domain), JSON.stringify(creds, null, 2) + '\n', {
+    mode: 0o600,
+  });
 }
 
-/**
- * Retrieve credentials from macOS Keychain
- * Triggers biometric authentication
- */
 export async function getCredentials(
   domain: string
 ): Promise<Credentials | null> {
-  const password = await keytar.getPassword(SERVICE_NAME, domain);
-
-  if (!password) {
-    return null;
-  }
-
   try {
-    return JSON.parse(password) as Credentials;
-  } catch {
-    throw new Error(`Failed to parse credentials for ${domain}`);
+    const data = await readFile(credPath(domain), 'utf-8');
+    return JSON.parse(data) as Credentials;
+  } catch (err: any) {
+    if (err.code === 'ENOENT') return null;
+    throw new Error(`Failed to read credentials for ${domain}`);
   }
 }
 
-/**
- * Delete credentials from macOS Keychain
- */
 export async function deleteCredentials(domain: string): Promise<boolean> {
-  return await keytar.deletePassword(SERVICE_NAME, domain);
+  try {
+    await unlink(credPath(domain));
+    return true;
+  } catch (err: any) {
+    if (err.code === 'ENOENT') return false;
+    throw err;
+  }
 }
 
-/**
- * List all configured domains
- */
 export async function listDomains(): Promise<string[]> {
-  const credentials = await keytar.findCredentials(SERVICE_NAME);
-  return credentials.map((c) => c.account);
+  try {
+    const files = await readdir(CONFIG_DIR);
+    return files
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => f.replace(/\.json$/, ''));
+  } catch (err: any) {
+    if (err.code === 'ENOENT') return [];
+    throw err;
+  }
 }
 
 /**

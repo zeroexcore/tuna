@@ -9,11 +9,7 @@ import { randomBytes } from 'crypto';
 import { readConfig, generateTunnelName } from '../lib/config.ts';
 import { getCredentials, getRootDomain } from '../lib/credentials.ts';
 import { CloudflareAPI } from '../lib/api.ts';
-import {
-  isInstalled,
-  download,
-  ensureDirectories,
-} from '../lib/cloudflared.ts';
+import { isInstalled, download, ensureDirectories } from '../lib/cloudflared.ts';
 import {
   generateIngressConfig,
   writeIngressConfig,
@@ -116,7 +112,9 @@ export async function runCommand(args: string[]): Promise<void> {
     // Check if we have local credentials
     if (!tunnelCredentialsExist(tunnel.id)) {
       spinner.fail('Tunnel exists but local credentials missing');
-      console.error(chalk.red('\nThe tunnel exists on Cloudflare but local credentials are missing.'));
+      console.error(
+        chalk.red('\nThe tunnel exists on Cloudflare but local credentials are missing.')
+      );
       console.log(chalk.yellow('Options:'));
       console.log(chalk.yellow('  1. Delete the tunnel and let tuna recreate it:'));
       console.log(chalk.cyan(`     tuna --delete ${tunnelName}`));
@@ -153,6 +151,7 @@ export async function runCommand(args: string[]): Promise<void> {
       spinner.succeed('Service restarted');
     }
   } catch (error) {
+    console.log(error);
     spinner.fail('Failed to start service');
     console.error(chalk.red(`\nError: ${(error as Error).message}`));
     process.exit(1);

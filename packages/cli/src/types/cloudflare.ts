@@ -5,6 +5,7 @@
 export interface Credentials {
   apiToken: string;
   accountId: string;
+  accountName?: string;
   domain: string;
 }
 

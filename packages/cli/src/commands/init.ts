@@ -59,8 +59,33 @@ export async function initCommand(): Promise<void> {
   try {
     // Check if we have any credentials stored
     const domains = await listDomains();
-    if (domains.length > 0) {
-      // Use the first configured domain
+    if (domains.length > 1) {
+      // Multiple profiles available - let user choose
+      const choices = await Promise.all(
+        domains.map(async (d) => {
+          const creds = await getCredentials(d);
+          const label = creds?.accountName
+            ? `${creds.accountName} (${d})`
+            : d;
+          return { name: label, value: d };
+        })
+      );
+
+      const { selectedDomain } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedDomain',
+          message: 'Select Cloudflare profile:',
+          choices,
+        },
+      ]);
+
+      const creds = await getCredentials(selectedDomain);
+      if (creds) {
+        storedDomain = creds.domain;
+      }
+    } else if (domains.length === 1) {
+      // Use the single configured domain
       const creds = await getCredentials(domains[0]);
       if (creds) {
         storedDomain = creds.domain;

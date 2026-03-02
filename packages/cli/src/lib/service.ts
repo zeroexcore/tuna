@@ -269,7 +269,9 @@ export async function startService(): Promise<void> {
     throw new Error('Service not installed. Run tuna first to set up the tunnel.');
   }
 
-  await execa('launchctl', ['start', LAUNCHD_LABEL]);
+  // Use launchctl load which loads and starts the service (since RunAtLoad is true)
+  // This works whether the service is already loaded or not
+  await execa('launchctl', ['load', PLIST_PATH]);
 }
 
 /**
@@ -285,9 +287,11 @@ export async function stopService(): Promise<void> {
   }
 
   try {
-    await execa('launchctl', ['stop', LAUNCHD_LABEL]);
+    // Use launchctl unload to stop and unregister the service
+    // This works whether the service is running or not
+    await execa('launchctl', ['unload', PLIST_PATH]);
   } catch {
-    // Ignore errors if service wasn't running
+    // Ignore errors if service wasn't loaded
   }
 }
 

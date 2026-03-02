@@ -1,4 +1,14 @@
-# Tuna Documentation Changelog
+# Tuna Changelog
+
+## 0.1.5 - 2026-03-02
+
+### Changed
+- **Credential storage**: Replaced keytar (macOS Keychain) with plain JSON files in `~/.config/tuna/credentials/`. Files are created with `0600` permissions. No native dependencies needed.
+- **Cross-platform**: Removed macOS-only requirement — tuna now works on Linux and Windows too.
+
+### Removed
+- `keytar` dependency (native addon, hard to install)
+- Internal `docs/` directory, `.opencode/` agent config, and process docs (`DEPLOYMENT.md`, `SDLC*.md`) — moved out of repo.
 
 ## 2026-01-25 - Zero Trust Access Control
 
@@ -116,7 +126,7 @@ tuna --help
 - **src/commands/login.ts** - Interactive credential setup
   - Prompts for API token and domain
   - Validates token with Cloudflare API
-  - Stores credentials in macOS Keychain
+  - Stores credentials in `~/.config/tuna/`
 
 - **src/commands/run.ts** - Main wrapper command
   - Reads config from package.json
@@ -209,9 +219,9 @@ tuna --version            # Show version
   - Tunnel name generation
   - 23 unit tests, all passing
 - **Credentials Module** (src/lib/credentials.ts)
-  - macOS Keychain integration via keytar
+  - File-based credential storage in `~/.config/tuna/`
   - Secure credential storage
-  - Biometric authentication support
+  - Restrictive file permissions (0600)
 - **API Client** (src/lib/api.ts)
   - Complete Cloudflare API wrapper
   - Tunnel operations (create, list, get, delete)
@@ -232,7 +242,7 @@ tuna --version            # Show version
 - src/index.ts - CLI entry point with Commander.js
 - src/types/*.ts - Type definitions (3 files)
 - src/lib/config.ts - Config management
-- src/lib/credentials.ts - Keychain management
+- src/lib/credentials.ts - Credential file management
 - src/lib/api.ts - Cloudflare API client
 
 **Tests:**
@@ -450,7 +460,7 @@ function interpolateEnvVars(value: string): string {
 
 ### Features Documented
 
-1. Secure credential storage in macOS Keychain
+1. Secure credential storage in `~/.config/tuna/`
 2. Zero configuration overhead with package.json
 3. Transparent command wrapping
 4. Persistent tunnels as system services

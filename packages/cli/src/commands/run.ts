@@ -17,7 +17,7 @@ import {
   tunnelCredentialsExist,
   installService,
   isServiceInstalled,
-  restartService,
+  updateServiceConfig,
 } from '../lib/service.ts';
 import { ensureDnsRecord } from '../lib/dns.ts';
 import { ensureAccess, getAccessDescription } from '../lib/access.ts';
@@ -146,8 +146,7 @@ export async function runCommand(args: string[]): Promise<void> {
       await installService(tunnel.id);
       spinner.succeed('Service installed');
     } else {
-      // Always restart to ensure config changes (port, hostname) are picked up
-      await restartService();
+      await updateServiceConfig(tunnel.id);
       spinner.succeed('Service restarted');
     }
   } catch (error) {

@@ -1,5 +1,10 @@
 # Tuna Changelog
 
+## 0.1.7 - 2026-03-02
+
+### Fixed
+- **Tunnel service not updating**: When switching tunnels, the launchd plist kept pointing at the old tunnel's config file. Now correctly rewrites the plist before restarting.
+
 ## 0.1.5 - 2026-03-02
 
 ### Changed

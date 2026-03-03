@@ -49,7 +49,7 @@ function App() {
             GitHub
           </a>
           <a
-            href="https://docs.tuna.oxc.sh/getting-started"
+            href="https://docs.tuna.oxc.sh"
             className="px-5 py-2.5 bg-surface-alt hover:bg-white hover:text-black border border-border-light rounded-lg transition-all duration-300"
           >
             Get started
@@ -115,7 +115,7 @@ function App() {
 
         <div className="absolute bottom-12 right-8 md:right-12 text-right animate-fade-up-delay-3">
           <a
-            href="https://docs.tuna.oxc.sh/getting-started"
+            href="https://docs.tuna.oxc.sh"
             className="text-white font-medium hover:text-accent transition-colors border-b-2 border-white hover:border-accent pb-1"
           >
             Get started →
@@ -335,7 +335,7 @@ function App() {
             </h2>
             <div className="flex flex-col gap-6">
               <a
-                href="https://docs.tuna.oxc.sh/getting-started"
+                href="https://docs.tuna.oxc.sh"
                 className="text-3xl md:text-4xl font-semibold hover:text-accent transition-all w-fit"
               >
                 Get started now →

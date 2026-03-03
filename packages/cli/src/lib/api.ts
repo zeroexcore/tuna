@@ -143,6 +143,17 @@ export class CloudflareAPI {
   }
 
   /**
+   * List all zones accessible by the token
+   */
+  async listZones(): Promise<Zone[]> {
+    const response = await this.request<Zone[]>('/zones?per_page=50&status=active');
+    if (!response.success) {
+      throw new Error('Failed to list zones');
+    }
+    return response.result;
+  }
+
+  /**
    * Get zone by domain name
    */
   async getZoneByName(domain: string): Promise<Zone> {

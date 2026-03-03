@@ -2,6 +2,7 @@
  * Login command - setup Cloudflare credentials
  */
 
+import { exec } from 'node:child_process';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -10,25 +11,56 @@ import { CloudflareAPI } from '../lib/api.ts';
 import type { Credentials } from '../types/index.ts';
 
 /**
+ * Cloudflare token template URL with pre-filled permissions.
+ * @see https://developers.cloudflare.com/fundamentals/api/how-to/account-owned-token-template/
+ * @see https://developers.cloudflare.com/fundamentals/api/reference/permissions/
+ */
+function buildTokenTemplateUrl(): string {
+  // Key list: https://cfdata.lol/tools/api-token-url-generator/
+  const permissions = [
+    { key: 'argotunnel', type: 'edit' },
+    { key: 'dns', type: 'edit' },
+    { key: 'access', type: 'edit' },
+    { key: 'account_settings', type: 'read' },
+  ];
+  const encoded = encodeURIComponent(JSON.stringify(permissions));
+  return `https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=${encoded}&name=tuna&accountId=*&zoneId=all`;
+}
+
+function openBrowser(url: string): void {
+  const cmd =
+    process.platform === 'darwin'
+      ? 'open'
+      : process.platform === 'win32'
+        ? 'start'
+        : 'xdg-open';
+  exec(`${cmd} "${url}"`);
+}
+
+/**
  * Interactive login flow to setup Cloudflare credentials
  */
 export async function loginCommand(): Promise<void> {
   console.log(chalk.blue('\n🔐 Tuna Login\n'));
-  console.log(chalk.dim('Store your Cloudflare credentials securely in ~/.config/tuna/.\n'));
 
-  // Prompt for API token
-  console.log(chalk.dim('Create a token at: https://dash.cloudflare.com/profile/api-tokens'));
-  console.log(chalk.dim('Required permissions:'));
-  console.log(chalk.dim('  • Account → Cloudflare Tunnel → Edit'));
-  console.log(chalk.dim('  • Account → Access: Apps and Policies → Edit'));
-  console.log(chalk.dim('  • Zone → DNS → Edit'));
-  console.log(chalk.dim('  • Account → Account Settings → Read\n'));
+  const tokenUrl = buildTokenTemplateUrl();
+
+  console.log(
+    chalk.dim(
+      'Opening Cloudflare dashboard to create an API token with the right permissions...\n',
+    ),
+  );
+  openBrowser(tokenUrl);
+
+  console.log(chalk.dim('  All permissions are pre-filled. Just click "Continue to summary" then "Create Token".\n'));
+  console.log(chalk.dim(`  If the browser didn't open, visit:`));
+  console.log(chalk.cyan(`  ${tokenUrl}\n`));
 
   const { apiToken } = await inquirer.prompt([
     {
       type: 'password',
       name: 'apiToken',
-      message: 'Enter your Cloudflare API token:',
+      message: 'Paste your API token:',
       mask: '*',
       validate: (input: string) => {
         if (!input || input.trim().length === 0) {
@@ -39,16 +71,14 @@ export async function loginCommand(): Promise<void> {
     },
   ]);
 
-  // Validate token and get account info
   const spinner = ora('Validating token...').start();
 
   let accountId: string;
   let accountName: string;
   try {
-    // Create a temporary API instance to validate
     const tempApi = new CloudflareAPI({
       apiToken: apiToken.trim(),
-      accountId: '', // Will be fetched
+      accountId: '',
       domain: '',
     });
 
@@ -62,48 +92,52 @@ export async function loginCommand(): Promise<void> {
     process.exit(1);
   }
 
-  // Prompt for domain
-  const { domain } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'domain',
-      message: 'Enter your root domain (e.g., example.com):',
-      validate: (input: string) => {
-        if (!input || input.trim().length === 0) {
-          return 'Domain is required';
-        }
-        // Basic domain validation
-        const domainRegex = /^[a-z0-9][a-z0-9-]*\.[a-z]{2,}$/i;
-        if (!domainRegex.test(input.trim())) {
-          return 'Invalid domain format. Enter just the root domain (e.g., example.com)';
-        }
-        return true;
-      },
-    },
-  ]);
+  // Fetch available zones and let user pick
+  const zonesSpinner = ora('Fetching your domains...').start();
 
-  // Verify domain access
-  const domainSpinner = ora('Verifying domain access...').start();
-
+  let domain: string;
   try {
     const api = new CloudflareAPI({
       apiToken: apiToken.trim(),
       accountId,
-      domain: domain.trim(),
+      domain: '',
     });
 
-    await api.getZoneByName(domain.trim());
-    domainSpinner.succeed('Domain verified');
+    const zones = await api.listZones();
+
+    if (zones.length === 0) {
+      zonesSpinner.fail('No domains found');
+      console.error(
+        chalk.red('\nNo active domains found in your Cloudflare account.'),
+      );
+      console.log(
+        chalk.yellow('Add a domain at https://dash.cloudflare.com first.'),
+      );
+      process.exit(1);
+    }
+
+    zonesSpinner.succeed(`Found ${zones.length} domain${zones.length > 1 ? 's' : ''}`);
+
+    if (zones.length === 1) {
+      domain = zones[0].name;
+      console.log(chalk.dim(`  Using ${domain}\n`));
+    } else {
+      const answer = await inquirer.prompt([
+        {
+          type: 'select',
+          name: 'domain',
+          message: 'Select your domain:',
+          choices: zones.map((z) => ({ name: z.name, value: z.name })),
+        },
+      ]);
+      domain = answer.domain;
+    }
   } catch (error) {
-    domainSpinner.fail('Domain verification failed');
+    zonesSpinner.fail('Failed to fetch domains');
     console.error(chalk.red(`\nError: ${(error as Error).message}`));
-    console.log(chalk.yellow('\nMake sure:'));
-    console.log(chalk.yellow('  1. The domain is added to your Cloudflare account'));
-    console.log(chalk.yellow('  2. Your API token has access to this domain'));
     process.exit(1);
   }
 
-  // Store credentials
   const saveSpinner = ora('Saving credentials...').start();
 
   try {

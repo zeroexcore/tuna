@@ -1,0 +1,245 @@
+# tuna — Full LLM Context
+
+> Cloudflare Tunnels for humans. Wrap any dev command with a secure, persistent tunnel.
+
+- Website: https://tuna.oxc.sh
+- Docs: https://docs.tuna.oxc.sh
+- GitHub: https://github.com/zeroexcore/tuna
+- npm: https://www.npmjs.com/package/@zeroexcore/tuna
+- License: MIT
+
+## Overview
+
+tuna is an open-source CLI tool (`@zeroexcore/tuna`) that wraps development server commands with automatic Cloudflare Tunnel setup. It eliminates manual tunnel creation, DNS management, and credential handling. You prefix your dev command with `tuna` and get a publicly accessible HTTPS URL on your own domain.
+
+## Installation
+
+```bash
+npm install -g @zeroexcore/tuna
+# or
+pnpm add -g @zeroexcore/tuna
+# or run without installing:
+npx @zeroexcore/tuna <command>
+```
+
+Requires Node.js 18+ and macOS (Linux/Windows planned).
+
+## Setup
+
+### 1. Login
+
+```bash
+tuna --login
+```
+
+Opens the Cloudflare dashboard with a pre-filled API token form. Required permissions:
+- Account → Cloudflare Tunnel → Edit
+- Account → Access: Apps and Policies → Edit
+- Account → Account Settings → Read
+- Zone → DNS → Edit
+
+After creating the token, paste it back. tuna validates it, fetches your domains, and lets you pick one. Credentials are stored in `~/.config/tuna/credentials/<domain>.json` with `0o600` permissions.
+
+### 2. Initialize project
+
+```bash
+tuna --init
+```
+
+Interactive setup that writes config to `package.json`.
+
+### 3. Run
+
+```bash
+tuna vite dev
+tuna npm run dev
+tuna next dev
+```
+
+## Configuration
+
+Config lives in `package.json` under the `"tuna"` key:
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+  }
+}
+```
+
+### Config fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `forward` | `string` | Yes | Domain to expose. Supports `$USER`, `$TUNA_USER`, `$HOME` interpolation. |
+| `port` | `number` | Yes | Local port to forward (1–65535). |
+| `access` | `string[]` | No | Email addresses or `@domain` patterns for Zero Trust access control. |
+
+### Environment variable interpolation
+
+The `forward` field supports these variables:
+- `$TUNA_USER` — Custom override (highest priority)
+- `$USER` — System username (falls back from `$TUNA_USER`)
+- `$HOME` — Home directory
+
+Interpolation order: `$TUNA_USER` > `$USER` > `'unknown'`
+
+Example:
+```json
+{ "forward": "$USER-api.example.com" }
+```
+Alice gets `alice-api.example.com`, Bob gets `bob-api.example.com`.
+
+### Runtime environment variables
+
+tuna sets these for the child process:
+- `TUNA_TUNNEL_URL` — The full tunnel URL (e.g., `https://my-app.example.com`)
+- `TUNA_TUNNEL_ID` — The Cloudflare tunnel UUID
+
+## Commands
+
+### `tuna <command>`
+Wraps a dev command with a tunnel. Starts the tunnel, then runs the command with `stdio: 'inherit'` (preserving TTY, colors, exit codes). Can also run without a command (`tuna` alone) to just keep the tunnel up.
+
+### `tuna --init`
+Interactive setup. Prompts for domain and port, writes config to `package.json`.
+
+### `tuna --login`
+Opens browser to Cloudflare token creation page with pre-filled permissions (using token template URLs with keys: `argotunnel`, `dns`, `access`, `account_settings`). Validates the token, fetches available zones, presents them as a select list, and saves credentials.
+
+### `tuna --list`
+Lists all tunnels for the configured domain. Shows tunnel name, ID, status, and connections.
+
+### `tuna --stop`
+Stops the cloudflared launchd service on macOS.
+
+### `tuna --delete [name]`
+Deletes a tunnel by name (from config or specified). Cleans up DNS records and tunnel credentials.
+
+### `tuna --help`
+Shows help.
+
+### `tuna --version`
+Shows version.
+
+## Team Collaboration
+
+Use `$USER` in the `forward` field:
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000
+  }
+}
+```
+
+Each developer automatically gets their own subdomain. No conflicts, no coordination needed. Override with `$TUNA_USER` if the system username doesn't match.
+
+## Access Control (Zero Trust)
+
+Restrict tunnel access using Cloudflare Access:
+
+```json
+{
+  "tuna": {
+    "forward": "staging.example.com",
+    "port": 3000,
+    "access": ["@mycompany.com", "contractor@gmail.com"]
+  }
+}
+```
+
+Patterns:
+- `@domain.com` — Allow anyone with that email domain
+- `user@email.com` — Allow a specific email address
+
+Users authenticate via Cloudflare Access (email OTP by default). tuna creates/updates Access applications and policies via the Cloudflare API.
+
+## Architecture
+
+### Repository structure
+
+```
+packages/
+├── cli/     # @zeroexcore/tuna — the CLI (published to npm)
+├── docs/    # Documentation site (Vocs) — docs.tuna.oxc.sh
+└── web/     # Landing page (Vite + React + Tailwind) — tuna.oxc.sh
+```
+
+### How it works under the hood
+
+1. **Config loading**: Reads `package.json` via `find-up`, parses `tuna` key, interpolates env vars, validates.
+2. **Credential loading**: Reads from `~/.config/tuna/credentials/<domain>.json`.
+3. **Tunnel management**: Creates/reuses Cloudflare Tunnels via the REST API (`/accounts/{id}/cfd_tunnel`).
+4. **DNS management**: Creates/updates CNAME records pointing to `<tunnel-id>.cfargotunnel.com`.
+5. **Ingress config**: Writes YAML config for cloudflared with hostname → localhost mapping.
+6. **Service management**: Installs cloudflared as a launchd service (`com.tuna.cloudflared`) with `RunAtLoad` and `KeepAlive` on macOS.
+7. **Command wrapping**: Uses `execa` with `stdio: 'inherit'` to run the child process transparently.
+8. **cloudflared binary**: Auto-detected in PATH or `~/.tuna/bin/`. Downloaded from Cloudflare GitHub releases if not found. Supports macOS (arm64/amd64), Linux (arm64/arm/amd64), Windows (x64/386).
+
+### Cloudflare API permissions
+
+| Permission | Scope | Used for |
+|------------|-------|----------|
+| Cloudflare Tunnel → Edit | Account | Create, list, delete tunnels |
+| Access: Apps and Policies → Edit | Account | Zero Trust access control |
+| DNS → Edit | Zone | Create/update CNAME records |
+| Account Settings → Read | Account | Validate token, get account info |
+
+### Credential storage
+
+- **API credentials**: `~/.config/tuna/credentials/<domain>.json` (mode `0o600`)
+- **Tunnel credentials**: `~/.tuna/tunnels/<tunnel-id>.json`
+- **cloudflared binary**: `~/.tuna/bin/cloudflared`
+
+### TypeScript types
+
+```typescript
+interface TunaConfig {
+  forward: string;      // Domain to expose
+  port: number;         // Local port (1-65535)
+  access?: string[];    // Zero Trust access rules
+}
+
+interface Credentials {
+  apiToken: string;
+  accountId: string;
+  accountName?: string;
+  domain: string;
+}
+
+interface Tunnel {
+  id: string;
+  name: string;
+  status: 'healthy' | 'down' | 'degraded' | 'inactive';
+  created_at: string;
+  connections?: Connection[];
+}
+```
+
+## Feature comparison
+
+| Feature | tuna | ngrok | localtunnel | cloudflared |
+|---------|------|-------|-------------|-------------|
+| Free custom domains | Yes | No (paid) | No | Yes |
+| Wrap dev commands | Yes | No | No | No |
+| Per-developer subdomains | Yes | No | No | No |
+| Config in package.json | Yes | No | No | No |
+| Run as OS service | Yes | No | No | Yes |
+| Config-driven access control | Yes | No | No | No (dashboard) |
+| No account required | No | No | Yes | No |
+| Traffic inspection | No | Yes | No | No |
+| Fully free | Yes | No (limited) | Yes | Yes |
+
+## Use cases
+
+- **Webhook testing** — Receive webhooks from Stripe, GitHub, etc. on your local machine
+- **OAuth callbacks** — Test OAuth flows with real redirect URLs on your own domain
+- **Mobile testing** — Access your dev server from real devices over HTTPS
+- **Client demos** — Share work-in-progress securely with custom access control
+- **Team development** — Every developer gets their own URL, no conflicts
+- **CI/CD previews** — Expose preview environments during development

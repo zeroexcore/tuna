@@ -1,0 +1,105 @@
+# tuna
+
+> Cloudflare Tunnels for humans. Wrap any dev command with a secure, persistent tunnel.
+
+## What is tuna?
+
+tuna is an open-source CLI that wraps your development server commands with automatic Cloudflare Tunnel setup. Instead of manually creating tunnels, configuring DNS, and managing credentials, you just prefix your command with `tuna`.
+
+- Website: https://tuna.oxc.sh
+- Docs: https://docs.tuna.oxc.sh
+- GitHub: https://github.com/zeroexcore/tuna
+- npm: https://www.npmjs.com/package/@zeroexcore/tuna
+
+## Install
+
+```bash
+npm install -g @zeroexcore/tuna
+```
+
+## Setup
+
+```bash
+tuna --login   # Opens browser, creates API token with right permissions
+tuna --init    # Interactive project setup
+```
+
+## Usage
+
+```bash
+tuna vite dev
+tuna npm run dev
+tuna next dev
+```
+
+This starts your dev server AND creates a Cloudflare Tunnel, making it available at your configured domain (e.g. `https://my-app.example.com`).
+
+## Configuration
+
+Add to `package.json`:
+
+```json
+{
+  "tuna": {
+    "forward": "my-app.example.com",
+    "port": 3000
+  }
+}
+```
+
+### Config fields
+
+- `forward` (string, required): Domain to expose. Supports `$USER` and `$TUNA_USER` for per-developer subdomains.
+- `port` (number, required): Local port to forward (1-65535).
+- `access` (string[], optional): Email addresses or `@domain` patterns for Zero Trust access control.
+
+### Team collaboration
+
+```json
+{
+  "tuna": {
+    "forward": "$USER-api.example.com",
+    "port": 3000
+  }
+}
+```
+
+Each developer gets their own subdomain automatically.
+
+### Access control
+
+```json
+{
+  "tuna": {
+    "forward": "staging.example.com",
+    "port": 3000,
+    "access": ["@mycompany.com", "contractor@gmail.com"]
+  }
+}
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `tuna <command>` | Wrap command with tunnel |
+| `tuna --init` | Interactive project setup |
+| `tuna --login` | Setup Cloudflare credentials |
+| `tuna --list` | List all tunnels |
+| `tuna --stop` | Stop cloudflared service |
+| `tuna --delete [name]` | Delete tunnel |
+
+## Requirements
+
+- Node.js 18+
+- Cloudflare account with a domain
+- macOS (Linux/Windows support planned)
+
+## How it works
+
+tuna uses cloudflared under the hood. It manages tunnel creation, DNS records, ingress config, and credentials automatically. Tunnels run as a launchd service on macOS, surviving terminal restarts.
+
+## Full documentation
+
+For complete docs see: https://docs.tuna.oxc.sh
+For full LLM context see: https://tuna.oxc.sh/llms-full.txt
